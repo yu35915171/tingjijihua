@@ -1,306 +1,464 @@
-<html><head><base href="/" />
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>计划停机申报表</title>
+<html><head><base href="." />
+<title>设备停机统计系统</title>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-        #formContainer {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        input, select {
-            margin-bottom: 10px;
-            padding: 10px;
-            width: 100%;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        button {
-            background-color: #5cb85c;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-right: 5px;
-        }
-        button:hover {
-            background-color: #4cae4c;
-        }
-        #recordsTable {
-            margin-top: 20px;
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #recordsTable th, #recordsTable td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-        #recordsTable th {
-            background-color: #5cb85c;
-            color: white;
-        }
-        #clearRecordsButton {
-            margin-top: 10px;
-            display: block;
-            float: right;
-        }
-    </style>
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f5f5f5;
+}
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.form-group {
+  margin-bottom: 15px;
+}
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+select, input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+button:hover {
+  background: #45a049;
+}
+.delete-btn {
+  background: #f44336;
+}
+.delete-btn:hover {
+  background: #da190b;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+th {
+  background-color: #f8f8f8;
+}
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  display: none;
+}
+.connection-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.connected {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+.disconnected {
+  background-color: #ffcdd2;
+  color: #c62828;
+}
+</style>
 </head>
 <body>
-
-<div id="formContainer">
-    <h2>计划停机申报表</h2>
-    <label for="date">选择日期:</label>
+<div id="connectionStatus" class="connection-status disconnected">未连接</div>
+<div class="container">
+  <h2>设备停机统计系统</h2>
+  <div id="errorMessage" class="error-message"></div>
+  
+  <div class="form-group">
+    <label>日期：</label>
     <input type="date" id="date" required>
+  </div>
 
-    <label for="stopHour">停车时间:</label>
-    <select id="stopHour" required>
-        <option value="00">00</option>
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-        <option value="04">04</option>
-        <option value="05">05</option>
-        <option value="06">06</option>
-        <option value="07">07</option>
-        <option value="08">08</option>
-        <option value="09">09</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-        <option value="19">19</option>
-        <option value="20">20</option>
-        <option value="21">21</option>
-        <option value="22">22</option>
-        <option value="23">23</option>
+  <div class="form-group">
+    <label>设备名称：</label>
+    <select id="equipment" required>
+      <option value="">请选择设备</option>
+      <option>生料磨</option>
+      <option>2#污泥泵</option>
+      <option>回转窑</option>
+      <option>1#风送系统</option>
+      <option>1#污泥泵</option>
+      <option>细碎系统</option>
+      <option>烘干系统</option>
+      <option>煤磨</option>
+      <option>发电系统</option>
+      <option>1#水泥磨</option>
+      <option>2#水泥磨</option>
+      <option>3#水泥磨</option>
+      <option>1#包机系统</option>
+      <option>2#包机系统</option>
+      <option>3#包机系统</option>
+      <option>4#包机系统</option>
+      <option>1#散装系统</option>
+      <option>2#散装系统</option>
+      <option>3#散装系统</option>
+      <option>4#散装系统</option>
     </select>
-    
-    <select id="stopMinute" required>
-        <option value="00">00</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-        <option value="40">40</option>
-        <option value="50">50</option>
-    </select>
+  </div>
 
-    <label for="startHour">开车时间:</label>
+  <div class="form-group">
+    <label>开车时间：</label>
     <select id="startHour" required>
-        <option value="00">00</option>
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-        <option value="04">04</option>
-        <option value="05">05</option>
-        <option value="06">06</option>
-        <option value="07">07</option>
-        <option value="08">08</option>
-        <option value="09">09</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
-        <option value="15">15</option>
-        <option value="16">16</option>
-        <option value="17">17</option>
-        <option value="18">18</option>
-        <option value="19">19</option>
-        <option value="20">20</option>
-        <option value="21">21</option>
-        <option value="22">22</option>
-        <option value="23">23</option>
+      <option value="">时</option>
     </select>
-    
     <select id="startMinute" required>
-        <option value="00">00</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-        <option value="40">40</option>
-        <option value="50">50</option>
+      <option value="">分</option>
     </select>
+  </div>
 
-    <label for="deviceName">选择设备:</label>
-    <select id="deviceName" required>
-        <option value="生料磨">生料磨</option>
-        <option value="2#污泥泵">2#污泥泵</option>
-        <option value="回转窑">回转窑</option>
-        <option value="1#风送系统">1#风送系统</option>
-        <option value="1#污泥泵">1#污泥泵</option>
-        <option value="细碎系统">细碎系统</option>
-        <option value="烘干系统">烘干系统</option>
-        <option value="煤磨">煤磨</option>
-        <option value="发电系统">发电系统</option>
-        <option value="1#水泥磨">1#水泥磨</option>
-        <option value="2#水泥磨">2#水泥磨</option>
-        <option value="3#水泥磨">3#水泥磨</option>
-        <option value="1#包机系统">1#包机系统</option>
-        <option value="2#包机系统">2#包机系统</option>
-        <option value="3#包机系统">3#包机系统</option>
-        <option value="4#包机系统">4#包机系统</option>
-        <option value="1#散装系统">1#散装系统</option>
-        <option value="2#散装系统">2#散装系统</option>
-        <option value="3#散装系统">3#散装系统</option>
-        <option value="4#散装系统">4#散装系统</option>
+  <div class="form-group">
+    <label>停车时间：</label>
+    <select id="stopHour" required>
+      <option value="">时</option>
     </select>
+    <select id="stopMinute" required>
+      <option value="">分</option>
+    </select>
+  </div>
 
-    <label for="stopReason">停车原因:</label>
-    <input type="text" id="stopReason" placeholder="请输入停车原因" required>
+  <div class="form-group">
+    <label>停车原因：</label>
+    <input type="text" id="reason" required>
+  </div>
 
+  <div class="form-group">
     <button onclick="addRecord()">添加记录</button>
-    <button id="exportButton" onclick="exportToExcel()">导出为 Excel</button>
-    <button id="clearRecordsButton" onclick="confirmClearRecords()">清除所有记录</button>
+    <button onclick="exportToExcel()">导出Excel</button>
+    <button onclick="clearAllRecords()" class="delete-btn">清除所有记录</button>
+  </div>
+
+  <table id="recordTable">
+    <thead>
+      <tr>
+        <th>日期</th>
+        <th>设备名称</th>
+        <th>开车时间</th>
+        <th>停车时间</th>
+        <th>停车原因</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="recordBody"></tbody>
+  </table>
 </div>
 
-<table id="recordsTable">
-    <thead>
-        <tr>
-            <th>选择</th>
-            <th>日期</th>
-            <th>设备名</th>
-            <th>开车时间</th>
-            <th>停车时间</th>
-            <th>停车原因</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody id="recordsBody">
-    </tbody>
-</table>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
 <script>
-    let records = [];
+const API_BASE_URL = 'http://localhost:3000';
+const TIMEOUT = 5000;
+let serverConnected = false;
 
-    async function addRecord() {
-        const date = document.getElementById('date').value;
-        const deviceName = document.getElementById('deviceName').value;
-        const startHour = document.getElementById('startHour').value;
-        const startMinute = document.getElementById('startMinute').value;
-        const stopHour = document.getElementById('stopHour').value;
-        const stopMinute = document.getElementById('stopMinute').value;
-        const stopReason = document.getElementById('stopReason').value;
+const socket = io(API_BASE_URL, {
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  timeout: TIMEOUT
+});
 
-        const startTime = `${startHour}:${startMinute}`;
-        const stopTime = `${stopHour}:${stopMinute}`;
+function showError(message) {
+  const errorDiv = document.getElementById('errorMessage');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+  setTimeout(() => {
+    errorDiv.style.display = 'none';
+  }, 5000);
+}
 
-        if (date && deviceName && stopReason) {
-            const record = { 
-                id: Date.now(),
-                date, 
-                deviceName, 
-                startTime, 
-                stopTime, 
-                stopReason 
-            };
-            
-            records = [...records, record];
-            localStorage.setItem('planningRecords', JSON.stringify(records));
-            
-            await displayRecords();
-            clearForm();
-        } else {
-            alert("请填写所有字段！");
-        }
+function updateConnectionStatus(status) {
+  const statusDiv = document.getElementById('connectionStatus');
+  if (status) {
+    statusDiv.className = 'connection-status connected';
+    statusDiv.textContent = '已连接';
+    serverConnected = true;
+  } else {
+    statusDiv.className = 'connection-status disconnected';
+    statusDiv.textContent = '未连接';
+    serverConnected = false;
+  }
+}
+
+// 检查服务器连接
+async function checkServerConnection() {
+  try {
+    await axios.get(`${API_BASE_URL}/health`, { timeout: TIMEOUT });
+    updateConnectionStatus(true);
+    return true;
+  } catch (error) {
+    updateConnectionStatus(false);
+    showError('无法连接到服务器，请检查服务器是否正常运行');
+    return false;
+  }
+}
+
+// 修改后的fetchRecords函数
+async function fetchRecords() {
+  if (!serverConnected) {
+    if (!await checkServerConnection()) {
+      return;
     }
-
-    async function fetchRecords() {
-        try {
-            const storedRecords = localStorage.getItem('planningRecords');
-            records = storedRecords ? JSON.parse(storedRecords) : [];
-            return records;
-        } catch (error) {
-            console.error('Error:', error);
-            return [];
-        }
+  }
+  
+  try {
+    const response = await axios.get(`${API_BASE_URL}/records`, {
+      timeout: TIMEOUT
+    });
+    if (response.data) {
+      records = response.data;
+      updateTable();
     }
+  } catch (error) {
+    console.error('获取记录失败:', error);
+    showError('获取记录失败，请检查服务器连接！');
+    updateConnectionStatus(false);
+  }
+}
 
-    async function displayRecords() {
-        const recordsBody = document.getElementById('recordsBody');
-        recordsBody.innerHTML = '';
-        records = await fetchRecords();
-        records.forEach((record, index) => {
-            const row = `<tr>
-                <td><input type="checkbox" id="record-${index}"></td>
-                <td>${record.date}</td>
-                <td>${record.deviceName}</td>
-                <td>${record.startTime}</td>
-                <td>${record.stopTime}</td>
-                <td>${record.stopReason}</td>
-                <td><button onclick="deleteRecord(${index})">删除</button></td>
-            </tr>`;
-            recordsBody.innerHTML += row;
-        });
+// 添加记录
+async function addRecord() {
+  if (!serverConnected) {
+    if (!await checkServerConnection()) {
+      return;
     }
+  }
+  
+  const date = document.getElementById('date').value;
+  const equipment = document.getElementById('equipment').value;
+  const startHour = document.getElementById('startHour').value;
+  const startMinute = document.getElementById('startMinute').value;
+  const stopHour = document.getElementById('stopHour').value;
+  const stopMinute = document.getElementById('stopMinute').value;
+  const reason = document.getElementById('reason').value;
 
-    function clearForm() {
-        document.getElementById('date').value = '';
-        document.getElementById('deviceName').value = '生料磨';
-        document.getElementById('startHour').value = '00';
-        document.getElementById('startMinute').value = '00';
-        document.getElementById('stopHour').value = '00';
-        document.getElementById('stopMinute').value = '00';
-        document.getElementById('stopReason').value = '';
+  if (!date || !equipment || !startHour || !startMinute || !stopHour || !stopMinute || !reason) {
+    alert('请填写所有字段！');
+    return;
+  }
+
+  const record = {
+    date,
+    equipment,
+    startTime: `${startHour}:${startMinute}`,
+    stopTime: `${stopHour}:${stopMinute}`,
+    reason
+  };
+
+  try {
+    const response = await axios.post(`${API_BASE_URL}/records`, record, {
+      timeout: TIMEOUT,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.data) {
+      records.push(response.data);
+      updateTable();
+      clearForm();
+      alert('记录添加成功！');
     }
+  } catch (error) {
+    console.error('添加记录失败:', error);
+    alert('添加记录失败，请检查服务器连接！');
+  }
+}
 
-    async function deleteRecord(index) {
-        records.splice(index, 1);
-        localStorage.setItem('planningRecords', JSON.stringify(records));
-        await displayRecords();
+// 删除记录
+async function deleteRecord(id) {
+  if (!serverConnected) {
+    if (!await checkServerConnection()) {
+      return;
     }
+  }
+  
+  if (!confirm('确定要删除这条记录吗？')) return;
+  
+  try {
+    await axios.delete(`${API_BASE_URL}/records/${id}`, {
+      timeout: TIMEOUT
+    });
+    records = records.filter(record => record._id !== id);
+    updateTable();
+    alert('记录删除成功！');
+  } catch (error) {
+    console.error('删除记录失败:', error);
+    alert('删除记录失败，请检查服务器连接！');
+  }
+}
 
-    async function clearAllRecords() {
-        records = [];
-        localStorage.setItem('planningRecords', JSON.stringify(records));
-        await displayRecords();
-        clearForm();
+// 清除所有记录
+async function clearAllRecords() {
+  if (!serverConnected) {
+    if (!await checkServerConnection()) {
+      return;
     }
+  }
+  
+  if (!confirm('确定要清除所有记录吗？')) return;
+  
+  try {
+    await axios.delete(`${API_BASE_URL}/records`, {
+      timeout: TIMEOUT
+    });
+    records = [];
+    updateTable();
+    alert('所有记录已清除！');
+  } catch (error) {
+    console.error('清除记录失败:', error);
+    alert('清除记录失败，请检查服务器连接！');
+  }
+}
 
-    function confirmClearRecords() {
-        const confirmDelete = confirm("您确定想清除所有记录吗？");
-        if (confirmDelete) {
-            clearAllRecords();
-        }
+// 导出Excel
+function exportToExcel() {
+  try {
+    if (records.length === 0) {
+      alert('没有可导出的记录！');
+      return;
     }
+    
+    const ws = XLSX.utils.json_to_sheet(records.map(record => ({
+      日期: record.date,
+      设备名称: record.equipment,
+      开车时间: record.startTime,
+      停车时间: record.stopTime,
+      停车原因: record.reason
+    })));
 
-    function exportToExcel() {
-        const data = [
-            ['日期', '设备名', '开车时间', '停车时间', '停车原因'],
-            ...records.map(record => [
-                record.date,
-                record.deviceName,
-                record.startTime,
-                record.stopTime,
-                record.stopReason
-            ])
-        ];
-        const worksheet = XLSX.utils.aoa_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "计划停机记录");
-        
-        const wbout = XLSX.write(workbook, {bookType:'xlsx', type:'array'});
-        const blob = new Blob([wbout], {type:'application/octet-stream'});
-        saveAs(blob, "计划停机记录.xlsx");
-    }
+    ws['!cols'] = [
+      {wch: 12},
+      {wch: 15},
+      {wch: 10},
+      {wch: 10},
+      {wch: 30}
+    ];
 
-    window.onload = displayRecords;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "停机记录");
+    
+    const fileName = `停机统计_${new Date().toISOString().split('T')[0]}.xlsx`;
+    
+    XLSX.writeFile(wb, fileName);
+    alert('导出成功！');
+  } catch (error) {
+    console.error('导出Excel失败:', error);
+    alert('导出Excel失败，请稍后重试！');
+  }
+}
+
+// 更新表格显示
+function updateTable() {
+  const tbody = document.getElementById('recordBody');
+  tbody.innerHTML = '';
+  
+  records.forEach(record => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${record.date}</td>
+      <td>${record.equipment}</td>
+      <td>${record.startTime}</td>
+      <td>${record.stopTime}</td>
+      <td>${record.reason}</td>
+      <td><button onclick="deleteRecord('${record._id}')" class="delete-btn">删除</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 清除表单
+function clearForm() {
+  document.getElementById('date').value = '';
+  document.getElementById('equipment').value = '';
+  document.getElementById('startHour').value = '';
+  document.getElementById('startMinute').value = '';
+  document.getElementById('stopHour').value = '';
+  document.getElementById('stopMinute').value = '';
+  document.getElementById('reason').value = '';
+}
+
+// Socket.io 事件监听
+socket.on('connect', async () => {
+  console.log('已连接到服务器');
+  updateConnectionStatus(true);
+  await fetchRecords();
+});
+
+socket.on('connect_error', (error) => {
+  console.error('服务器连接失败:', error);
+  updateConnectionStatus(false);
+  showError('服务器连接失败，请检查网络连接');
+});
+
+socket.on('disconnect', () => {
+  console.log('与服务器断开连接');
+  updateConnectionStatus(false);
+});
+
+// 初始化
+window.onload = async () => {
+  initTimeSelectors();
+  await checkServerConnection();
+  if (serverConnected) {
+    await fetchRecords();
+  }
+};
+
+// 定期检查服务器连接
+setInterval(checkServerConnection, 30000);
+
+// 初始化时间选择器
+function initTimeSelectors() {
+  const hours = document.getElementById('startHour');
+  const stopHours = document.getElementById('stopHour');
+  const minutes = document.getElementById('startMinute');
+  const stopMinutes = document.getElementById('stopMinute');
+  
+  // 添加小时选项
+  for(let i = 0; i < 24; i++) {
+    const hour = i.toString().padStart(2, '0');
+    hours.innerHTML += `<option value="${hour}">${hour}</option>`;
+    stopHours.innerHTML += `<option value="${hour}">${hour}</option>`;
+  }
+  
+  // 添加分钟选项(10分钟间隔)
+  for(let i = 0; i <= 50; i += 10) {
+    const minute = i.toString().padStart(2, '0');
+    minutes.innerHTML += `<option value="${minute}">${minute}</option>`;
+    stopMinutes.innerHTML += `<option value="${minute}">${minute}</option>`;
+  }
+}
 </script>
-
 </body>
 </html>
