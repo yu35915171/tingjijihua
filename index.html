@@ -1,0 +1,306 @@
+<html><head><base href="/" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计划停机申报表</title>
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        #formContainer {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select {
+            margin-bottom: 10px;
+            padding: 10px;
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        #recordsTable {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #recordsTable th, #recordsTable td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        #recordsTable th {
+            background-color: #5cb85c;
+            color: white;
+        }
+        #clearRecordsButton {
+            margin-top: 10px;
+            display: block;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+
+<div id="formContainer">
+    <h2>计划停机申报表</h2>
+    <label for="date">选择日期:</label>
+    <input type="date" id="date" required>
+
+    <label for="stopHour">停车时间:</label>
+    <select id="stopHour" required>
+        <option value="00">00</option>
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+        <option value="05">05</option>
+        <option value="06">06</option>
+        <option value="07">07</option>
+        <option value="08">08</option>
+        <option value="09">09</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+    </select>
+    
+    <select id="stopMinute" required>
+        <option value="00">00</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+        <option value="50">50</option>
+    </select>
+
+    <label for="startHour">开车时间:</label>
+    <select id="startHour" required>
+        <option value="00">00</option>
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+        <option value="05">05</option>
+        <option value="06">06</option>
+        <option value="07">07</option>
+        <option value="08">08</option>
+        <option value="09">09</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+    </select>
+    
+    <select id="startMinute" required>
+        <option value="00">00</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+        <option value="50">50</option>
+    </select>
+
+    <label for="deviceName">选择设备:</label>
+    <select id="deviceName" required>
+        <option value="生料磨">生料磨</option>
+        <option value="2#污泥泵">2#污泥泵</option>
+        <option value="回转窑">回转窑</option>
+        <option value="1#风送系统">1#风送系统</option>
+        <option value="1#污泥泵">1#污泥泵</option>
+        <option value="细碎系统">细碎系统</option>
+        <option value="烘干系统">烘干系统</option>
+        <option value="煤磨">煤磨</option>
+        <option value="发电系统">发电系统</option>
+        <option value="1#水泥磨">1#水泥磨</option>
+        <option value="2#水泥磨">2#水泥磨</option>
+        <option value="3#水泥磨">3#水泥磨</option>
+        <option value="1#包机系统">1#包机系统</option>
+        <option value="2#包机系统">2#包机系统</option>
+        <option value="3#包机系统">3#包机系统</option>
+        <option value="4#包机系统">4#包机系统</option>
+        <option value="1#散装系统">1#散装系统</option>
+        <option value="2#散装系统">2#散装系统</option>
+        <option value="3#散装系统">3#散装系统</option>
+        <option value="4#散装系统">4#散装系统</option>
+    </select>
+
+    <label for="stopReason">停车原因:</label>
+    <input type="text" id="stopReason" placeholder="请输入停车原因" required>
+
+    <button onclick="addRecord()">添加记录</button>
+    <button id="exportButton" onclick="exportToExcel()">导出为 Excel</button>
+    <button id="clearRecordsButton" onclick="confirmClearRecords()">清除所有记录</button>
+</div>
+
+<table id="recordsTable">
+    <thead>
+        <tr>
+            <th>选择</th>
+            <th>日期</th>
+            <th>设备名</th>
+            <th>开车时间</th>
+            <th>停车时间</th>
+            <th>停车原因</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody id="recordsBody">
+    </tbody>
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+<script>
+    let records = [];
+
+    async function addRecord() {
+        const date = document.getElementById('date').value;
+        const deviceName = document.getElementById('deviceName').value;
+        const startHour = document.getElementById('startHour').value;
+        const startMinute = document.getElementById('startMinute').value;
+        const stopHour = document.getElementById('stopHour').value;
+        const stopMinute = document.getElementById('stopMinute').value;
+        const stopReason = document.getElementById('stopReason').value;
+
+        const startTime = `${startHour}:${startMinute}`;
+        const stopTime = `${stopHour}:${stopMinute}`;
+
+        if (date && deviceName && stopReason) {
+            const record = { 
+                id: Date.now(),
+                date, 
+                deviceName, 
+                startTime, 
+                stopTime, 
+                stopReason 
+            };
+            
+            records = [...records, record];
+            localStorage.setItem('planningRecords', JSON.stringify(records));
+            
+            await displayRecords();
+            clearForm();
+        } else {
+            alert("请填写所有字段！");
+        }
+    }
+
+    async function fetchRecords() {
+        try {
+            const storedRecords = localStorage.getItem('planningRecords');
+            records = storedRecords ? JSON.parse(storedRecords) : [];
+            return records;
+        } catch (error) {
+            console.error('Error:', error);
+            return [];
+        }
+    }
+
+    async function displayRecords() {
+        const recordsBody = document.getElementById('recordsBody');
+        recordsBody.innerHTML = '';
+        records = await fetchRecords();
+        records.forEach((record, index) => {
+            const row = `<tr>
+                <td><input type="checkbox" id="record-${index}"></td>
+                <td>${record.date}</td>
+                <td>${record.deviceName}</td>
+                <td>${record.startTime}</td>
+                <td>${record.stopTime}</td>
+                <td>${record.stopReason}</td>
+                <td><button onclick="deleteRecord(${index})">删除</button></td>
+            </tr>`;
+            recordsBody.innerHTML += row;
+        });
+    }
+
+    function clearForm() {
+        document.getElementById('date').value = '';
+        document.getElementById('deviceName').value = '生料磨';
+        document.getElementById('startHour').value = '00';
+        document.getElementById('startMinute').value = '00';
+        document.getElementById('stopHour').value = '00';
+        document.getElementById('stopMinute').value = '00';
+        document.getElementById('stopReason').value = '';
+    }
+
+    async function deleteRecord(index) {
+        records.splice(index, 1);
+        localStorage.setItem('planningRecords', JSON.stringify(records));
+        await displayRecords();
+    }
+
+    async function clearAllRecords() {
+        records = [];
+        localStorage.setItem('planningRecords', JSON.stringify(records));
+        await displayRecords();
+        clearForm();
+    }
+
+    function confirmClearRecords() {
+        const confirmDelete = confirm("您确定想清除所有记录吗？");
+        if (confirmDelete) {
+            clearAllRecords();
+        }
+    }
+
+    function exportToExcel() {
+        const data = [
+            ['日期', '设备名', '开车时间', '停车时间', '停车原因'],
+            ...records.map(record => [
+                record.date,
+                record.deviceName,
+                record.startTime,
+                record.stopTime,
+                record.stopReason
+            ])
+        ];
+        const worksheet = XLSX.utils.aoa_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "计划停机记录");
+        
+        const wbout = XLSX.write(workbook, {bookType:'xlsx', type:'array'});
+        const blob = new Blob([wbout], {type:'application/octet-stream'});
+        saveAs(blob, "计划停机记录.xlsx");
+    }
+
+    window.onload = displayRecords;
+</script>
+
+</body>
+</html>
